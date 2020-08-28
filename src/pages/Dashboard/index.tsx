@@ -54,12 +54,28 @@ const Dashboard: React.FC = () => {
   const navigation = useNavigation();
 
   async function handleNavigate(id: number): Promise<void> {
-    // Navigate do ProductDetails page
+    navigation.navigate('FoodDetails', { id });
   }
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // Load Foods from API
+      try {
+        const response = await api.get('foods', {
+          params: {
+            name_like: searchValue || undefined,
+            category_like: selectedCategory || undefined,
+          },
+        });
+
+        const foodsData = response.data.map((item: Food) => ({
+          ...item,
+          formattedPrice: formatValue(item.price),
+        }));
+
+        setFoods(foodsData);
+      } catch (err) {
+        console.log(err); //eslint-disable-line
+      }
     }
 
     loadFoods();
@@ -67,14 +83,23 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadCategories(): Promise<void> {
-      // Load categories from API
+      try {
+        const response = await api.get('/categories');
+        setCategories(response.data);
+      } catch (err) {
+        console.log(err);  //eslint-disable-line
+      }
     }
 
     loadCategories();
   }, []);
 
   function handleSelectCategory(id: number): void {
-    // Select / deselect category
+    if (id === selectedCategory) {
+      setSelectedCategory(undefined);
+    } else {
+      setSelectedCategory(id);
+    }
   }
 
   return (
@@ -122,31 +147,33 @@ const Dashboard: React.FC = () => {
             ))}
           </CategorySlider>
         </CategoryContainer>
-        <FoodsContainer>
-          <Title>Pratos</Title>
-          <FoodList>
-            {foods.map(food => (
-              <Food
-                key={food.id}
-                onPress={() => handleNavigate(food.id)}
-                activeOpacity={0.6}
-                testID={`food-${food.id}`}
-              >
-                <FoodImageContainer>
-                  <Image
-                    style={{ width: 88, height: 88 }}
-                    source={{ uri: food.thumbnail_url }}
-                  />
-                </FoodImageContainer>
-                <FoodContent>
-                  <FoodTitle>{food.name}</FoodTitle>
-                  <FoodDescription>{food.description}</FoodDescription>
-                  <FoodPricing>{food.formattedPrice}</FoodPricing>
-                </FoodContent>
-              </Food>
-            ))}
-          </FoodList>
-        </FoodsContainer>
+        {foods && (
+          <FoodsContainer>
+            <Title>Pratos</Title>
+            <FoodList>
+              {foods.map(food => (
+                <Food
+                  key={food.id}
+                  onPress={() => handleNavigate(food.id)}
+                  activeOpacity={0.6}
+                  testID={`food-${food.id}`}
+                >
+                  <FoodImageContainer>
+                    <Image
+                      style={{ width: 88, height: 88 }}
+                      source={{ uri: food.thumbnail_url }}
+                    />
+                  </FoodImageContainer>
+                  <FoodContent>
+                    <FoodTitle>{food.name}</FoodTitle>
+                    <FoodDescription>{food.description}</FoodDescription>
+                    <FoodPricing>{food.formattedPrice}</FoodPricing>
+                  </FoodContent>
+                </Food>
+              ))}
+            </FoodList>
+          </FoodsContainer>
+        )}
       </ScrollView>
     </Container>
   );

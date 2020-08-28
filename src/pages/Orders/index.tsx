@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 
 import api from '../../services/api';
-import formatValue from '../../utils/formatValue';
+// import formatValue from '../../utils/formatValue';
 
 import {
   Container,
@@ -24,6 +24,7 @@ interface Food {
   description: string;
   price: number;
   formattedValue: number;
+  formattedPrice: number;
   thumbnail_url: string;
 }
 
@@ -32,11 +33,19 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     async function loadOrders(): Promise<void> {
-      // Load orders from API
+      try {
+        const response = await api.get('/orders');
+
+        setOrders(response.data);
+      } catch (err) {
+        console.log(err.response); //eslint-disable-line
+      }
     }
 
     loadOrders();
   }, []);
+
+  console.log(orders); //eslint-disable-line
 
   return (
     <Container>
